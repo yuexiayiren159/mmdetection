@@ -70,7 +70,7 @@ try:
     print("Waiting for debugger attach")
     debugpy.wait_for_client()
 except Exception as e:
-    pass
+    print(e)
 
 
 def parse_args():

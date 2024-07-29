@@ -1,5 +1,6 @@
 import cv2
 import torch
+import numpy as np
 from PIL import Image
 from torchvision import transforms
 import torch.nn.functional as F
@@ -8,6 +9,15 @@ import matplotlib.pyplot as plt
 from mmdet.apis import init_detector
 
 from typing import List, Union
+
+import debugpy
+try:
+    # 5678 is the default attach port in the VS Code debug configurations. Unless a host and port are specified, host defaults to 127.0.0.1
+    debugpy.listen(("localhost", 9501))
+    print("Waiting for debugger attach")
+    debugpy.wait_for_client()
+except Exception as e:
+    print(e)
 
 # COCO 数据集的 80 类
 coco_classes = [
@@ -33,8 +43,8 @@ anchors = [
 ]
 
 # 配置文件和模型权重路径
-config_file = 'E:\workspace\lanyun_work\openmmlab\mmdetection\configs\yolo\yolov3_mobilenetv2_8xb24-ms-416-300e_coco.py'
-checkpoint_file = 'F:/model/mmdet/yolov3/yolov3_mobilenetv2_mstrain-416_300e_coco_20210718_010823-f68a07b3.pth'
+config_file = '/root/lanyun-tmp/project/openmmlab/mmdetection/my_configs/yolov3_mobilenetv2_8xb24-ms-416-300e_coco.py'
+checkpoint_file = '/root/lanyun-tmp/project/openmmlab/mmdetection/checkpoints/yolov3_mobilenetv2_mstrain-416_300e_coco_20210718_010823-f68a07b3.pth'
 
 
 
@@ -44,7 +54,7 @@ model = init_detector(config_file, checkpoint_file, device='cpu')
 
 
 
-img_path = r"E:\workspace\lanyun_work\openmmlab\mmdetection\demo\demo.jpg"
+img_path = "/root/lanyun-tmp/project/openmmlab/mmdetection/demo/demo.jpg"
 img_bgr = cv2.imread(img_path)
 img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
 
@@ -219,7 +229,137 @@ def preprocess_image(img_path, target_size=(288, 416), intermediate_size=(278, 4
     #
     # return img_tensor.unsqueeze(0)  # 增加 batch 维度
 
-def process_yolo_outputs(outputs, img_size=(288, 416), conf_threshold=0.5, nms_threshold=0.4):
+# def process_yolo_outputs(outputs, img_size=(288, 416), conf_threshold=0.5, nms_threshold=0.4):
+#     boxes = []
+#     confidences = []
+#     class_ids = []
+
+#     for scale_index, scale_output in enumerate(outputs[0]):
+#         batch_size, num_channels, grid_height, grid_width = scale_output.shape
+#         num_classes = (num_channels // 3) - 5
+
+#         # 调整形状以适应 YOLO 格式
+#         scale_output = scale_output.view(batch_size, 3, 5 + num_classes, grid_height, grid_width)
+#         scale_output = scale_output.permute(0, 1, 3, 4, 2).contiguous()
+
+#         # 获取当前尺度的锚框
+#         scale_anchors = anchors[scale_index]
+
+#         for batch in range(batch_size):
+#             for anchor in range(3):
+#                 for y in range(grid_height):
+#                     for x in range(grid_width):
+#                         pred = scale_output[batch, anchor, y, x]
+
+#                         # 获取对象置信度
+#                         obj_conf = torch.sigmoid(pred[4])
+
+#                         # 获取类别概率
+#                         class_scores = torch.sigmoid(pred[5:])
+#                         class_score, class_id = torch.max(class_scores, dim=0)
+#                         confidence = obj_conf * class_score
+
+#                         if confidence.item() > conf_threshold:
+#                             # 获取边界框坐标和尺寸
+#                             bx = (torch.sigmoid(pred[0]) + x) / grid_width
+#                             by = (torch.sigmoid(pred[1]) + y) / grid_height
+
+#                             # 获取锚框的宽度和高度
+#                             anchor_width, anchor_height = scale_anchors[anchor]
+#                             img_h, img_w = img_size
+#                             bw = torch.exp(pred[2]) * anchor_width / img_w
+#                             bh = torch.exp(pred[3]) * anchor_height / img_h
+
+#                             # 转换为左上角坐标
+#                             x1 = int((bx - bw / 2) * img_w)
+#                             y1 = int((by - bh / 2) * img_h)
+#                             x2 = int((bx + bw / 2) * img_w)
+#                             y2 = int((by + bh / 2) * img_h)
+
+#                             boxes.append([x1, y1, x2 - x1, y2 - y1])
+#                             confidences.append(float(confidence))
+#                             class_ids.append(class_id.item())
+
+#     # 使用 NMS 来移除重复的边界框
+#     if len(boxes) > 0:
+#         indices = cv2.dnn.NMSBoxes(boxes, confidences, conf_threshold, nms_threshold)
+#         if len(indices) > 0:
+#             indices = indices.flatten()
+#             result = [(boxes[i], confidences[i], class_ids[i]) for i in indices]
+#         else:
+#             result = []
+#     else:
+#         result = []
+
+#     return result
+
+
+# def process_yolo_outputs(outputs, img_size=(288, 416), conf_threshold=0.3, nms_threshold=0.45):
+#     boxes = []
+#     confidences = []
+#     class_ids = []
+
+#     for scale_index, scale_output in enumerate(outputs[0]):
+#         batch_size, num_channels, grid_height, grid_width = scale_output.shape
+#         num_classes = (num_channels // 3) - 5
+
+#         # 调整形状以适应 YOLO 格式
+#         scale_output = scale_output.view(batch_size, 3, 5 + num_classes, grid_height, grid_width)
+#         scale_output = scale_output.permute(0, 1, 3, 4, 2).contiguous()
+
+#         # 获取当前尺度的锚框
+#         scale_anchors = anchors[scale_index]
+
+#         for batch in range(batch_size):
+#             for anchor in range(3):
+#                 for y in range(grid_height):
+#                     for x in range(grid_width):
+#                         pred = scale_output[batch, anchor, y, x]
+
+#                         # 获取对象置信度
+#                         obj_conf = torch.sigmoid(pred[4])
+
+#                         # 获取类别概率
+#                         class_scores = torch.sigmoid(pred[5:])
+#                         class_score, class_id = torch.max(class_scores, dim=0)
+#                         confidence = obj_conf * class_score
+
+#                         if confidence.item() > conf_threshold:
+#                             # 获取边界框坐标和尺寸
+#                             bx = (torch.sigmoid(pred[0]) + x) / grid_width
+#                             by = (torch.sigmoid(pred[1]) + y) / grid_height
+
+#                             # 获取锚框的宽度和高度
+#                             anchor_width, anchor_height = scale_anchors[anchor]
+#                             img_h, img_w = img_size
+#                             bw = torch.exp(pred[2]) * anchor_width / img_w
+#                             bh = torch.exp(pred[3]) * anchor_height / img_h
+
+#                             # 转换为左上角坐标
+#                             x1 = int((bx - bw / 2) * img_w)
+#                             y1 = int((by - bh / 2) * img_h)
+#                             x2 = int((bx + bw / 2) * img_w)
+#                             y2 = int((by + bh / 2) * img_h)
+
+#                             boxes.append([x1, y1, x2 - x1, y2 - y1])
+#                             confidences.append(float(confidence))
+#                             class_ids.append(class_id.item())
+
+#     # 使用 NMS 来移除重复的边界框
+#     if len(boxes) > 0:
+#         indices = cv2.dnn.NMSBoxes(boxes, confidences, conf_threshold, nms_threshold)
+#         if len(indices) > 0:
+#             indices = indices.flatten()
+#             result = [(boxes[i], confidences[i], class_ids[i]) for i in indices]
+#         else:
+#             result = []
+#     else:
+#         result = []
+
+#     return result
+
+
+def process_yolo_outputs(outputs, img_size=(288, 416), conf_threshold=0.05, nms_threshold=0.45):
     boxes = []
     confidences = []
     class_ids = []
@@ -229,7 +369,9 @@ def process_yolo_outputs(outputs, img_size=(288, 416), conf_threshold=0.5, nms_t
         num_classes = (num_channels // 3) - 5
 
         # 调整形状以适应 YOLO 格式
+        # scale_output = torch.Size([1, 3, 85, 9, 13])
         scale_output = scale_output.view(batch_size, 3, 5 + num_classes, grid_height, grid_width)
+        # torch.Size([1, 3, 85, 9, 13]) -> torch.Size([1, 3, 9, 13, 85])
         scale_output = scale_output.permute(0, 1, 3, 4, 2).contiguous()
 
         # 获取当前尺度的锚框
@@ -272,10 +414,13 @@ def process_yolo_outputs(outputs, img_size=(288, 416), conf_threshold=0.5, nms_t
 
     # 使用 NMS 来移除重复的边界框
     if len(boxes) > 0:
-        indices = cv2.dnn.NMSBoxes(boxes, confidences, conf_threshold, nms_threshold)
+        boxes = np.array(boxes)
+        confidences = np.array(confidences)
+        indices = cv2.dnn.NMSBoxes(boxes.tolist(), confidences.tolist(), conf_threshold, nms_threshold)
+        
         if len(indices) > 0:
             indices = indices.flatten()
-            result = [(boxes[i], confidences[i], class_ids[i]) for i in indices]
+            result = [(boxes[i], confidences[i], coco_classes[class_ids[i]]) for i in indices]
         else:
             result = []
     else:
@@ -284,69 +429,6 @@ def process_yolo_outputs(outputs, img_size=(288, 416), conf_threshold=0.5, nms_t
     return result
 
 
-def process_yolo_outputs(outputs, img_size=(288, 416), conf_threshold=0.3, nms_threshold=0.45):
-    boxes = []
-    confidences = []
-    class_ids = []
-
-    for scale_index, scale_output in enumerate(outputs[0]):
-        batch_size, num_channels, grid_height, grid_width = scale_output.shape
-        num_classes = (num_channels // 3) - 5
-
-        # 调整形状以适应 YOLO 格式
-        scale_output = scale_output.view(batch_size, 3, 5 + num_classes, grid_height, grid_width)
-        scale_output = scale_output.permute(0, 1, 3, 4, 2).contiguous()
-
-        # 获取当前尺度的锚框
-        scale_anchors = anchors[scale_index]
-
-        for batch in range(batch_size):
-            for anchor in range(3):
-                for y in range(grid_height):
-                    for x in range(grid_width):
-                        pred = scale_output[batch, anchor, y, x]
-
-                        # 获取对象置信度
-                        obj_conf = torch.sigmoid(pred[4])
-
-                        # 获取类别概率
-                        class_scores = torch.sigmoid(pred[5:])
-                        class_score, class_id = torch.max(class_scores, dim=0)
-                        confidence = obj_conf * class_score
-
-                        if confidence.item() > conf_threshold:
-                            # 获取边界框坐标和尺寸
-                            bx = (torch.sigmoid(pred[0]) + x) / grid_width
-                            by = (torch.sigmoid(pred[1]) + y) / grid_height
-
-                            # 获取锚框的宽度和高度
-                            anchor_width, anchor_height = scale_anchors[anchor]
-                            img_h, img_w = img_size
-                            bw = torch.exp(pred[2]) * anchor_width / img_w
-                            bh = torch.exp(pred[3]) * anchor_height / img_h
-
-                            # 转换为左上角坐标
-                            x1 = int((bx - bw / 2) * img_w)
-                            y1 = int((by - bh / 2) * img_h)
-                            x2 = int((bx + bw / 2) * img_w)
-                            y2 = int((by + bh / 2) * img_h)
-
-                            boxes.append([x1, y1, x2 - x1, y2 - y1])
-                            confidences.append(float(confidence))
-                            class_ids.append(class_id.item())
-
-    # 使用 NMS 来移除重复的边界框
-    if len(boxes) > 0:
-        indices = cv2.dnn.NMSBoxes(boxes, confidences, conf_threshold, nms_threshold)
-        if len(indices) > 0:
-            indices = indices.flatten()
-            result = [(boxes[i], confidences[i], class_ids[i]) for i in indices]
-        else:
-            result = []
-    else:
-        result = []
-
-    return result
 
 img_size = (288,416)
 
@@ -369,6 +451,42 @@ print(detections)
 
 
 # 可视化结果
+# def show_result(img_path, detections, original_size=(427, 640), input_size=(288, 416)):
+#     if not detections:
+#         print("No detections found.")
+#         return
+
+#     # 读取原始图片
+#     img = cv2.imread(img_path)
+#     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+#     # 计算宽度和高度的缩放比率
+#     orig_h, orig_w = original_size
+#     inp_h, inp_w = input_size
+#     scale_w = orig_w / inp_w
+#     scale_h = orig_h / inp_h
+
+#     for (box, score, class_id) in detections:
+#         # 将检测框的坐标映射回原始图片尺寸
+#         x, y, w, h = box
+#         x = int(x * scale_w)
+#         y = int(y * scale_h)
+#         w = int(w * scale_w)
+#         h = int(h * scale_h)
+
+#         if x < 0 or y < 0 or w <= 0 or h <= 0:
+#             print(f"Invalid bounding box detected: {box}")
+#             continue
+
+#         label = f'Class {class_id}: {score:.2f}'
+#         cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+#         cv2.putText(img, label, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+
+#     plt.imshow(img)
+#     plt.axis('off')
+#     # plt.show()
+#     plt.savefig("demo_output.png")
+
 def show_result(img_path, detections, original_size=(427, 640), input_size=(288, 416)):
     if not detections:
         print("No detections found.")
@@ -384,7 +502,7 @@ def show_result(img_path, detections, original_size=(427, 640), input_size=(288,
     scale_w = orig_w / inp_w
     scale_h = orig_h / inp_h
 
-    for (box, score, class_id) in detections:
+    for (box, score, class_name) in detections:
         # 将检测框的坐标映射回原始图片尺寸
         x, y, w, h = box
         x = int(x * scale_w)
@@ -392,16 +510,14 @@ def show_result(img_path, detections, original_size=(427, 640), input_size=(288,
         w = int(w * scale_w)
         h = int(h * scale_h)
 
-        if x < 0 or y < 0 or w <= 0 or h <= 0:
-            print(f"Invalid bounding box detected: {box}")
-            continue
-
-        label = f'Class {class_id}: {score:.2f}'
+        # 绘制边框和标签
         cv2.rectangle(img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        label = f'{class_name}: {score:.2f}'
         cv2.putText(img, label, (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
     plt.imshow(img)
     plt.axis('off')
-    plt.show()
+    plt.savefig("demo_output.png")
+    # plt.show()
 
 show_result(img_path, detections)

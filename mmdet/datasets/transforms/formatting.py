@@ -81,7 +81,7 @@ class PackDetInputs(BaseTransform):
                 img = np.ascontiguousarray(img.transpose(2, 0, 1))
                 img = to_tensor(img)
             else:
-                img = to_tensor(img).permute(2, 0, 1).contiguous()
+                img = to_tensor(img).permute(2, 0, 1).contiguous() # h,w,c -> c, h, w
 
             packed_results['inputs'] = img
 

@@ -14,7 +14,7 @@ data_preprocessor = dict(
         57.375,
     ],
     type='DetDataPreprocessor')
-data_root = 'F:/dataset/COCO/coco128/'
+data_root = '/root/lanyun-tmp/coco128/'
 dataset_type = 'CocoDataset'
 default_hooks = dict(
     checkpoint=dict(interval=1, type='CheckpointHook'),
@@ -194,7 +194,7 @@ test_dataloader = dict(
         ann_file='annotations/instances_val2017.json',
         backend_args=None,
         data_prefix=dict(img='val2017/'),
-        data_root='F:/dataset/COCO/coco128/',
+        data_root='/root/lanyun-tmp/coco128/',
         pipeline=[
             dict(backend_args=None, type='LoadImageFromFile'),
             dict(keep_ratio=True, scale=(
@@ -219,7 +219,7 @@ test_dataloader = dict(
     persistent_workers=True,
     sampler=dict(shuffle=False, type='DefaultSampler'))
 test_evaluator = dict(
-    ann_file='F:/dataset/COCO/coco128/annotations/instances_val2017.json',
+    ann_file='/root/lanyun-tmp/coco128/annotations/instances_val2017.json',
     backend_args=None,
     metric='bbox',
     type='CocoMetric')
@@ -249,7 +249,7 @@ train_dataloader = dict(
             ann_file='annotations/instances_train2017.json',
             backend_args=None,
             data_prefix=dict(img='train2017/'),
-            data_root='F:/dataset/COCO/coco128/',
+            data_root='/root/lanyun-tmp/coco128/',
             filter_cfg=dict(filter_empty_gt=True, min_size=32),
             pipeline=[
                 dict(backend_args=None, type='LoadImageFromFile'),
@@ -350,7 +350,7 @@ val_dataloader = dict(
         ann_file='annotations/instances_val2017.json',
         backend_args=None,
         data_prefix=dict(img='val2017/'),
-        data_root='F:/dataset/COCO/coco128/',
+        data_root='/root/lanyun-tmp/coco128/',
         pipeline=[
             dict(backend_args=None, type='LoadImageFromFile'),
             dict(keep_ratio=True, scale=(
@@ -375,7 +375,7 @@ val_dataloader = dict(
     persistent_workers=True,
     sampler=dict(shuffle=False, type='DefaultSampler'))
 val_evaluator = dict(
-    ann_file='F:/dataset/COCO/coco128/annotations/instances_val2017.json',
+    ann_file='/root/lanyun-tmp/coco128/annotations/instances_val2017.json',
     backend_args=None,
     metric='bbox',
     type='CocoMetric')

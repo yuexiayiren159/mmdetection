@@ -266,7 +266,7 @@ def show_result(img_path, detections, original_size=(427, 640), input_size=(288,
 
     plt.imshow(img)
     plt.axis('off')
-    plt.savefig("demo_output.png")
+    # plt.savefig("demo_output.png")
     plt.show()
 
 show_result(img_path, detections)

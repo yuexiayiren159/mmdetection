@@ -10,14 +10,14 @@ from mmdet.apis import init_detector
 
 from typing import List, Union
 
-import debugpy
-try:
-    # 5678 is the default attach port in the VS Code debug configurations. Unless a host and port are specified, host defaults to 127.0.0.1
-    debugpy.listen(("localhost", 9501))
-    print("Waiting for debugger attach")
-    debugpy.wait_for_client()
-except Exception as e:
-    print(e)
+# import debugpy
+# try:
+#     # 5678 is the default attach port in the VS Code debug configurations. Unless a host and port are specified, host defaults to 127.0.0.1
+#     debugpy.listen(("localhost", 9501))
+#     print("Waiting for debugger attach")
+#     debugpy.wait_for_client()
+# except Exception as e:
+#     print(e)
 
 # COCO 数据集的 80 类
 coco_classes = [
@@ -43,8 +43,8 @@ anchors = [
 ]
 
 # 配置文件和模型权重路径
-config_file = '/root/lanyun-tmp/project/openmmlab/mmdetection/my_configs/yolov3_mobilenetv2_8xb24-ms-416-300e_coco.py'
-checkpoint_file = '/root/lanyun-tmp/project/openmmlab/mmdetection/checkpoints/yolov3_mobilenetv2_mstrain-416_300e_coco_20210718_010823-f68a07b3.pth'
+config_file = 'E:\workspace\lanyun_work\openmmlab\mmdetection\configs\yolo\yolov3_mobilenetv2_8xb24-ms-416-300e_coco.py'
+checkpoint_file = 'F:/model/mmdet/yolov3/yolov3_mobilenetv2_mstrain-416_300e_coco_20210718_010823-f68a07b3.pth'
 
 
 
@@ -54,7 +54,7 @@ model = init_detector(config_file, checkpoint_file, device='cpu')
 
 
 
-img_path = "/root/lanyun-tmp/project/openmmlab/mmdetection/demo/demo.jpg"
+img_path = r"E:\workspace\lanyun_work\openmmlab\mmdetection\demo\demo.jpg"
 img_bgr = cv2.imread(img_path)
 img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB)
 
@@ -447,7 +447,7 @@ def show_result(img_path, detections, original_size=(427, 640), input_size=(288,
 
     plt.imshow(img)
     plt.axis('off')
-    plt.savefig("demo_output.png")
-    # plt.show()
+    # plt.savefig("demo_output.png")
+    plt.show()
 
 show_result(img_path, detections)

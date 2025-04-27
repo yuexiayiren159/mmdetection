@@ -373,7 +373,9 @@ class BaseDenseHead(BaseModule, metaclass=ABCMeta):
             # the `custom_cls_channels` parameter is derived from
             # CrossEntropyCustomLoss and FocalCustomLoss, and is currently used
             # in v3det.
-            if getattr(self.loss_cls, 'custom_cls_channels', False):
+            # if getattr(self.loss_cls, 'custom_cls_channels', False):
+            # ! 这里使用sdd模型时候出现问题，修改成下面这句代码，解决AttributeError: 'SSDHead' object has no attribute 'loss_cls' 这个报错问题
+            if getattr(self, 'loss_cls', None) and getattr(self.loss_cls, 'custom_cls_channels', False):
                 scores = self.loss_cls.get_activation(cls_score)
             elif self.use_sigmoid_cls:
                 scores = cls_score.sigmoid()

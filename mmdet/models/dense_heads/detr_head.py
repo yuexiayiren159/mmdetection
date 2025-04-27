@@ -183,9 +183,9 @@ class DETRHead(BaseModule):
             batch_img_metas.append(data_sample.metainfo)
             batch_gt_instances.append(data_sample.gt_instances)
 
-        outs = self(hidden_states)
+        outs = self(hidden_states)  # ! 这里进入_call_impl ,out最终返回分类和位置回归
         loss_inputs = outs + (batch_gt_instances, batch_img_metas)
-        losses = self.loss_by_feat(*loss_inputs)
+        losses = self.loss_by_feat(*loss_inputs)  # ! 计算loss
         return losses
 
     def loss_by_feat(

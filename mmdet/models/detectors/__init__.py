@@ -59,6 +59,9 @@ from .yolo import YOLOV3
 from .yolof import YOLOF
 from .yolox import YOLOX
 
+# 自定义
+from .tiny_ssd import TinySSDDetector
+
 __all__ = [
     'ATSS', 'BaseDetector', 'SingleStageDetector', 'TwoStageDetector', 'RPN',
     'KnowledgeDistillationSingleStageDetector', 'FastRCNN', 'FasterRCNN',
@@ -71,5 +74,6 @@ __all__ = [
     'MaskFormer', 'DDOD', 'Mask2Former', 'SemiBaseDetector', 'SoftTeacher',
     'RTMDet', 'Detectron2Wrapper', 'CrowdDet', 'CondInst', 'BoxInst',
     'DetectionTransformer', 'ConditionalDETR', 'DINO', 'DABDETR', 'GLIP',
-    'DDQDETR', 'GroundingDINO'
+    'DDQDETR', 'GroundingDINO',
+    'TinySSDDetector'
 ]

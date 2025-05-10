@@ -118,6 +118,7 @@ mmdet/.mim
 work_dirs/
 my_work/
 my_configs/
+outputs/
 
 # Pytorch
 *.pth

@@ -8,7 +8,7 @@ _base_ = [
 custom_imports = dict(
     imports=[
         'mmdet.models.detectors.tiny_ssd',
-        'mmdet.models.backbones.tinyssd_custom',
+        # 'mmdet.models.backbones.tinyssd_custom',
         'mmdet.models.dense_heads.ssd_custom_head',
     ],
     allow_failed_imports=False
@@ -100,7 +100,7 @@ model = dict(
     data_preprocessor=data_preprocessor,
     backbone=dict(
         type='TinySSD_Custom',
-        out_channels=[64, 128, 128, 128, 128], # 这里的out_channels需要和backbone的实际输出通道数一致
+        input_channels=3,
         # 这个 stage_configs 定义了网络的结构和哪些是输出特征
         # (out_c, num_convs, is_feature)
         # 这需要精确匹配你原始的期望：
@@ -112,9 +112,43 @@ model = dict(
         # Block 4: 128 -> 128 (特征, idx=4)
         # Block 5: 128 -> 128 (特征, idx=5)
         # Block 6: AdaptiveMaxPool2d (特征, idx=6, 输入是Block 5的输出128)
+        stage_configs=[
+            (16, 2, False), # blocks[0]
+            (32, 2, False), # blocks[1]
+            (64, 2, True),  # blocks[2] -> feature 0 (原始的 idx=2)
+            (128, 2, True), # blocks[3] -> feature 1 (原始的 idx=3)
+            (128, 2, True), # blocks[4] -> feature 2 (原始的 idx=4)
+            (128, 2, True), # blocks[5] -> feature 3 (原始的 idx=5)
+            # AdaptiveMaxPool2d 会在 _make_network_layers 中被自动添加为最后一个 block
+            # 并且其输出会被作为最后一个特征 (对应你原始的 idx=6)
+        ],
+        # AdaptiveMaxPool2d 会作用于最后一个 stage_config (即 stage_configs[5]) 的输出 (128通道)
         # 并且 AdaptiveMaxPool2d 不改变通道数，所以最终输出也是128通道
+        final_conv_out_channels=128, # 这个参数现在有点冗余，因为最后一个stage的out_c决定了池化前的通道
+                                   # 除非你想在最后一个downsample block和池化层之间再加卷积调整通道
+        init_cfg=None # 或者你的初始化配置
     ),
     neck=None,  # 没有特殊neck
+    # bbox_head=dict(
+    #     type='TinySSDHead',
+    #     num_classes=1,  # 香蕉只有1类,
+    #     num_anchors=4,
+    #     # in_channels=(16, 32, 64),
+    #     in_channels=[64, 128, 128, 128, 128],  # ⭐这里一定要对齐！
+    #     #####################
+    #     anchor_generator=dict( # 占位，但最终需要
+    #         type='SSDAnchorGenerator',
+    #         strides=[c], # 示例，需要与backbone的实际下采样对应
+    #         ratios=([2], [2], [2], [2], [2]), # 简化
+    #         min_sizes=[20, 50, 80, 110, 140], # 示例
+    #         max_sizes=[c], # 示例
+    #     ),
+    #     bbox_coder=dict(
+    #         type='DeltaXYWHBBoxCoder',
+    #         target_means=[.0, .0, .0, .0],
+    #         target_stds=[1.0, 1.0, 1.0, 1.0]),
+    #     #######################
+    # ),
     bbox_head=dict(
         type='TinySSDHead',
         in_channels=(64, 128, 128, 128, 128),

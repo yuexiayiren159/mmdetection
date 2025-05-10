@@ -13,8 +13,15 @@
 
 
 # 测试mobilenetv2-ssd
+# python ./demo/image_demo.py \
+#   data/coco4/val2017/000000370677.jpg \
+#   my_configs/ssdlite_mobilenetv2-scratch_8xb24-600e_coco.py \
+#   --weights work_dirs/ssdlite_mobilenetv2-scratch_8xb24-600e_coco/epoch_5.pth \
+#   --out-dir ./my_work/ssdlite_mobilenetv2-scratch_8xb24-600e_coco
+
+# 测试mssd-custom
 python ./demo/image_demo.py \
-  data/coco4/val2017/000000370677.jpg \
-  my_configs/ssdlite_mobilenetv2-scratch_8xb24-600e_coco.py \
-  --weights work_dirs/ssdlite_mobilenetv2-scratch_8xb24-600e_coco/epoch_5.pth \
-  --out-dir ./my_work/ssdlite_mobilenetv2-scratch_8xb24-600e_coco
+  data/banana-coco/train2017/0.png \
+  configs/ssd/ssd_custom.py \
+  --weights work_dirs/ssd_custom/epoch_12.pth \
+  --out-dir ./my_work/ssd
